@@ -6,15 +6,18 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
                              QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
                              QVBoxLayout, QWidget, QInputDialog, QFileDialog, QMainWindow, QTableWidgetItem)
 
-#import datFileRead as dfr
+
 from random import randint
 import pandas as pd
-
+import pyqtgraph as pg
+from live_graph import exampleGraph
+import numpy as np
 
 class App(QDialog):
     def __init__(self):
         super(App, self).__init__()
         self.initUI()
+
 
     def initUI(self):
         QApplication.setStyle('windowsvista')
@@ -53,7 +56,6 @@ class App(QDialog):
         self.setLayout(mainLayout)
 
 
-    # functions must be here??
     def openFile(self):
         try:
             self.path = QFileDialog.getOpenFileName()[0]
@@ -93,6 +95,7 @@ class App(QDialog):
         QTimer.singleShot(1000, self.dataLoad)
         print('Hello')
 
+
     def createTopLeftGroupBox(self):
         self.topLeftGroupBox = QGroupBox("Select data:")
 
@@ -130,10 +133,45 @@ class App(QDialog):
     def createBottomRightGroupBox(self):
         self.bottomRightGroupBox = QGroupBox("Resulting chart:")
 
-        checkBox = QCheckBox("test")
+        self.checkBox = QCheckBox("test")
+
+        self.graph = pg.PlotWidget()
+        self.graph.xLabel = 'x'
+        self.graph.yLabel = 'y'
+        self.graph.setBackground("w")
+
+        self.hour = []
+        self.temperature = []
+
+        for i in range(10):
+            [h, t] = [np.random.rand(), np.random.rand()]
+            self.hour.append(h)
+            self.temperature.append(t)
+            i += 1
+
+        self.graph.plot(self.hour, self.temperature, symbol='o', pen=None)
+
+        styles = {'color': 'b', 'font-size': '20px'}
+        self.graph.setLabel('bottom', self.graph.xLabel, **styles)
+        self.graph.setLabel('left', self.graph.yLabel, **styles)
+        self.graph.showGrid(x=True, y=True)
+
+        self.timer = QTimer()
+        self.timer.setInterval(500)
+        self.timer.timeout.connect(self.update_plot_data)
+        self.timer.start()
+
+    def update_plot_data(self):
+        self.graph.clear()
+        self.hour = self.hour[1:]
+        self.hour.append(np.random.rand())
+        self.temperature = self.temperature[1:]
+        self.temperature.append(np.random.rand())
+        self.graph.plot(self.hour, self.temperature, symbol='o', pen=None)
 
         layout = QHBoxLayout()
-        layout.addWidget(checkBox)
+        layout.addWidget(self.checkBox)
+        layout.addWidget(self.graph)
         layout.addStretch(1)
         self.bottomRightGroupBox.setLayout(layout)
 
